@@ -12,19 +12,23 @@ tol = 10^(-4);
 col = ['r','b','g','c','m'];
 
 
-n0=100; % defining parameter n0
-A=1; % define initial slope at x=-4
-x0=[0 A]; % initial conditions: x1(-4)=0, x1'(-4)=A
-xp=[-4 4]; % span of the computational domain
+K=1; % defining parameter K to keep integral equal to 1?
+y0=[1 4]; % initial conditions: y1(-4)=1, y1'(-4)=4
+xp=-4:.1:4; % span of the computational domain
 
-eps_start=n0; % beginning value for epsilon
-for modes 1:5 % begin mode loop
+eigenvalues = zeros(1,5);
+eigenvectors = zeros(81,5);
+
+eps_start=K; % beginning value for epsilon
+for modes=1:5 % begin mode loop
     eps=eps_start; % initial value of the eigenvalue epsilon
-    deps=n0/100; % default step size in epsilon
+    deps=K/100; % default step size in epsilon
     for j=1:1000 % begin convergence loop for beta
-        [t,y]=ode45('shoot2',xp,x0,[],n0, eps); % solve ODEs
+        [t,y]=ode45('shoot2',xp,y0,[],K, eps); % solve ODEs
         if abs(y(end,1)-0) < tol %check for convergence
             disp(eps) % print out the eigenvalue
+            eigenvalues(1,modes)=eps;
+            eigenvectors(:,modes)=y(:,1);
             break % leave convergence loop
         end
         if (-1)^(modes+1)*y(end,1)>0 % check if epsilon should be higher or lower
@@ -34,10 +38,8 @@ for modes 1:5 % begin mode loop
             deps=deps/2; % set the change in epsilon to 1/2 previous change
         end
     end % end converge loop
-eps_start=eps-.1; % after finding eigenvalue pick new starting value for next mode
-norm=trapz(t,y(:,1).*y(:,1)); % calculate the normalization 
-plot(t,y(:,1)/sqrt(norm),col(modes)); hold on % plot each mode
-
-
-L = 4;
-xspan = -L:.1:L;
+    eps_start=eps-.1; % after finding eigenvalue pick new starting value for next mode
+    norm=trapz(t,y(:,1).*y(:,1)); % calculate the normalization 
+    plot(t,y(:,1)/sqrt(norm),col(modes)); hold on % plot each mode
+end
+legend('mode1','mode2','mode3','mode4','mode5');
