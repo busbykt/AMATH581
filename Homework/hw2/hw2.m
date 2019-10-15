@@ -23,7 +23,7 @@ eps_start=0; % beginning value for epsilon
 for modes=1:5 % begin mode loop
     eps=eps_start; % initial value of the eigenvalue epsilon
     deps=1; % default step size in epsilon - set by Sasha
-    for j=1:1000 % begin convergence loop for beta
+    for j=1:1000 % begin convergence loop for epsilon
         [t,y]=ode45('shoot2',xp,y0,[],K, eps); % solve ODEs
         if abs(y(end,1)-0) < tol %check for convergence
             disp(eps) % print out the eigenvalue
