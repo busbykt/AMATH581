@@ -32,10 +32,10 @@ for modes=1:5 % begin mode loop
             break % leave convergence loop
         end
         if (-1)^(modes+1)*y(end,1)>0 % check if epsilon should be higher or lower
-            eps=eps-deps; % set epsilon lower by delta epsilon
-        else
-            eps=eps+deps/2; % set epsilon higher by delta epsilon
+            eps=eps+deps; % set epsilon lower by delta epsilon
             deps=deps/2; % set the change in epsilon to 1/2 previous change
+        else
+            eps=eps-deps; % set epsilon higher by delta epsilon
         end
     end % end converge loop
     eps_start=eps+2; % after finding eigenvalue pick new starting value for next mode
@@ -59,6 +59,22 @@ save A6.dat eigenvalues -ascii
 
 
 %%
+
+% Problem 2
+
+
+
+%%
+fun = @testfunction;
+
+x0=[1,1];
+[x, fval] = fminunc(fun, x0);
+
+disp(x);
+disp(fval);
+
+
+%%
 % Problem 3
 
 K=1; % defining parameter K to keep integral equal to 1?
@@ -68,7 +84,8 @@ xp=-4:.1:4; % span of the computational domain
 eigenvalues = zeros(1,5);
 eigenvectors = zeros(81,5);
 
-fun = @optfunction; % define optimization function
+fun=@optfunction;
+
 
 eps_start=0; % beginning value for epsilon
 for modes=1:5 % begin mode loop
@@ -76,26 +93,8 @@ for modes=1:5 % begin mode loop
     deps=1; % default step size in epsilon - set by Sasha
     
     x0 = [y0, eps, K]; %define initial point
-    x = fminunc(fun, init_pt); 
+    y = fminunc(fun, x0); 
     
-    for j=1:1000 % begin convergence loop for epsilon
-        [t,y]=ode45('shoot2',xp,y0,[],K, eps); % solve ODEs
-        if abs(y(end,1)-0) < tol %check for convergence
-            disp(eps) % print out the eigenvalue
-            eigenvalues(1,modes)=eps; % save the eigenvalue
-            eigenvectors(:,modes)=y(:,1); % save the eigenvector
-            break % leave convergence loop
-        end
-        if (-1)^(modes+1)*y(end,1)>0 % check if epsilon should be higher or lower
-            eps=eps-deps; % set epsilon lower by delta epsilon
-        else
-            eps=eps+deps/2; % set epsilon higher by delta epsilon
-            deps=deps/2; % set the change in epsilon to 1/2 previous change
-        end
-    end % end converge loop
-    eps_start=eps+2; % after finding eigenvalue pick new starting value for next mode
-    norm=trapz(t,y(:,1).*y(:,1)); % calculate the normalization 
-    plot(t,y(:,1)/sqrt(norm),col(modes)); hold on % plot each mode
 end
-legend('mode1','mode2','mode3','mode4','mode5');
+
 
