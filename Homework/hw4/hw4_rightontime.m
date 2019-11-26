@@ -1,0 +1,220 @@
+% Kelton Busby
+% AMATH 581 HW4
+
+clear variables;
+
+% set value of kappa
+kappa=.1;
+
+% set space and time discretization
+dt = .05;
+dx = .1;
+
+tspan = 0:dt:1;
+xspan = 0:dx:1;
+n = length(tspan);
+m = length(xspan);
+
+
+% initial distribution
+init_cond = @(x) sin(2*pi*x);
+
+% define initial U
+U_fe = transpose(init_cond(xspan));
+
+r = kappa*dt/(dx^2);
+
+e=ones(length(xspan),1);
+A = spdiags([e -2*e e], -1:1, m, m);
+A(1,10)=1;
+A(end,2)=1;
+
+U = zeros(length(xspan),length(tspan));
+
+for i=1:length(tspan)
+    U(:,i)=U_fe;
+    U_fe = U_fe + r*A*U_fe;
+end
+
+%save the output of final time t=1 A1
+A1 = U(:,end);
+save A1.dat A1 -ascii
+
+
+% backward Euler Method
+% set space and time discretization
+dt = .05;
+dx = .1;
+tspan = 0:dt:1;
+xspan = 0:dx:1;
+n = length(tspan);
+m = length(xspan);
+U_be = transpose(init_cond(xspan)); % define initial U
+
+U = zeros(length(xspan),length(tspan));
+
+for i=1:length(tspan)
+    
+    M = diag(diag(A)); % set predconditioner to diagonal of A
+    b = ones(m,1); % set b to a column of ones length n
+    x = U_be; % set initial guess
+    k=1; % counter
+    errVec = zeros(1,1000); % initialize array to hold errors
+    resid = x - r*A*x - U_be; % residuals
+    err = norm(resid); % compute the error from the residuals
+    errVec(k)=err;
+    z = M\resid; % solve for z
+    
+    while err > 1e-8
+        x = x + z; % update x
+        resid = x - r*A*x - U_be; % update residuals
+        err = norm(resid); % update error
+        z = M\resid; % update z
+        k=k+1; % add 1 to the number of loops
+        errVec(k)=err;
+        if k > 1000
+            break
+        end
+    end
+    U(:,i)=U_be;
+    U_be = x; % update U_be
+end
+
+% Save A2
+A2 =U(:,end);
+save A2.dat A2 -ascii
+
+
+% backward Euler Method
+% set space and time discretization
+dt = .01;
+dx = .01;
+
+tspan = 0:dt:1;
+xspan = 0:dx:1;
+n = length(tspan);
+m = length(xspan);
+
+r = kappa*dt/(dx^2);
+
+e=ones(length(xspan),1);
+A = spdiags([e -2*e e], -1:1, m, m);
+A(1,end-1)=1;
+A(end,2)=1;
+
+U_be = transpose(init_cond(xspan)); % define initial U
+
+U = zeros(length(xspan),length(tspan));
+
+A1 = eye(m)-r*A;
+A2 = eye(m)+r*A;
+
+for i=1:length(tspan)
+    
+    M = diag(diag(A)); % set predconditioner to diagonal of A
+    x = A1\U_be; % set initial guess
+    U(:,i)=U_be;
+    U_be = x; % update U_be
+end
+
+% Save A2
+A3 =U(:,end);
+save A3.dat A3 -ascii
+
+% Crank-Nicolson Method
+% set space and time discretization
+dt = .05;
+dx = .1;
+tspan = 0:dt:1;
+xspan = 0:dx:1;
+n = length(tspan);
+m = length(xspan);
+
+r = kappa*dt/(2*dx^2);
+
+e=ones(length(xspan),1);
+A = spdiags([e -2*e e], -1:1, m, m);
+A(1,m-1)=1;
+A(end,2)=1;
+U_cn = transpose(init_cond(xspan)); % define initial U
+
+U = zeros(length(xspan),length(tspan));
+
+for i=1:length(tspan)
+    
+    M = diag(diag(A)); % set predconditioner to diagonal of A
+    b = ones(m,1); % set b to a column of ones length n
+    x = U_cn; % set initial guess
+    k=1; % counter
+    errVec = zeros(1,1000); % initialize array to hold errors
+    resid = x - r*A*(x+U_cn) - U_cn; % residuals
+    err = norm(resid); % compute the error from the residuals
+    errVec(k)=err;
+    z = M\resid; % solve for z
+    
+    while err > 1e-8
+        x = x + z; % update x
+        resid = x - r*A*(x+U_cn) - U_cn; % update residuals
+        err = norm(resid); % update error
+        z = M\resid; % update z
+        k=k+1; % add 1 to the number of loops
+        errVec(k)=err;
+        if k > 1000
+            break
+        end
+    end
+    U(:,i)=U_cn;
+    U_cn = x; % update U_cn
+end
+
+%Save A4
+A4 = U(:,end);
+save A4.dat A4 -ascii
+
+%%
+clear variables;
+% Crank-Nicolson Method
+% set space and time discretization
+dt = .01;
+dx = .01;
+tspan = 0:dt:1;
+xspan = 0:dx:1;
+n = length(tspan);
+m = length(xspan);
+kappa=.1;
+
+r = kappa*dt/(2*dx^2);
+
+e=ones(length(xspan),1);
+A = spdiags([e -2*e e], -1:1, m, m);
+A(1,m-1)=1;
+A(end,2)=1;
+
+% initial distribution
+init_cond = @(x) sin(2*pi*x);
+
+U_cn = transpose(init_cond(xspan)); % define initial U
+
+U = zeros(length(xspan),length(tspan));
+
+A1 = eye(m)-r*A;
+A2 = eye(m)+r*A;
+
+for i=1:length(tspan)
+    
+    M = diag(diag(A)); % set predconditioner to diagonal of A
+    x = A1\(A2*U_cn); % set initial guess
+    U(:,i)=U_cn;
+    U_cn = x; % update U_cn
+end
+
+z_vec = U(:);
+x_vec = transpose(repmat(xspan,1,length(xspan)));
+y_vec = transpose(repmat(tspan,1,length(tspan)));
+surface(U);
+
+
+% Save A5
+A5 = U(:,end);
+save A5.dat A5 -ascii
+
