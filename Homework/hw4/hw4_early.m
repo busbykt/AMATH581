@@ -88,6 +88,8 @@ A2 = U(:,end);
 save A2.dat A2 -ascii
 
 
+%%
+
 % Crank-Nicolson Method
 % set space and time discretization
 dt = .05;
@@ -97,7 +99,7 @@ xspan = 0:dx:1;
 n = length(tspan);
 m = length(xspan);
 
-r = kappa*dt/(dx^2);
+r = kappa*dt/(2*dx^2);
 
 e=ones(length(xspan),1);
 A = spdiags([e -2*e e], -1:1, m, m);
@@ -132,10 +134,6 @@ for i=1:length(tspan)
     end
     U(:,i)=U_cn;
     U_cn = x; % update U_be
-    %plot(U)
-    %hold on
-    %drawnow;
-    %pause(.1);
 end
 
 %Save A4

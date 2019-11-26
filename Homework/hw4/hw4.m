@@ -41,8 +41,8 @@ for i=1:length(tspan)
 end
 
 % save the output of final time t=1 A1
-A1 = U(:,end);
-save A1.dat A1 -ascii
+% A1 = U(:,end);
+% save A1.dat A1 -ascii
 
 
 
@@ -88,16 +88,17 @@ for i=1:length(tspan)
 end
 
 %Save A2
-A2 =U(:,end);
-save A2.dat A2 -ascii
+% A2 =U(:,end);
+% save A2.dat A2 -ascii
 
 
 %%
 
-% backward Euler Method small step
+% backward Euler Method
 % set space and time discretization
 dt = .01;
 dx = .01;
+
 tspan = 0:dt:1;
 xspan = 0:dx:1;
 n = length(tspan);
@@ -107,42 +108,28 @@ r = kappa*dt/(dx^2);
 
 e=ones(length(xspan),1);
 A = spdiags([e -2*e e], -1:1, m, m);
-A(1,m-1)=1;
+A(1,end-1)=1;
 A(end,2)=1;
 
 U_be = transpose(init_cond(xspan)); % define initial U
+
 U = zeros(length(xspan),length(tspan));
+
+A1 = eye(m)-r*A;
+A2 = eye(m)+r*A;
 
 for i=1:length(tspan)
     
     M = diag(diag(A)); % set predconditioner to diagonal of A
-    b = ones(m,1); % set b to a column of ones length n
-    x = U_be; % set initial guess
-    k=1; % counter
-    errVec = zeros(1,1000); % initialize array to hold errors
-    resid =x - r*A*x - U_be; % residuals
-    err = norm(resid); % compute the error from the residuals
-    errVec(k)=err;
-    z = M\resid; % solve for z
-    
-    while err > 1e-8
-        x = x + z; % update x
-        resid = x - r*A*x - U_be; % update residuals
-        err = norm(resid); % update error
-        z = M\resid; % update z
-        k=k+1; % add 1 to the number of loops
-        errVec(k)=err;
-        if k > 1000
-            break
-        end
-    end
+    x = A1\U_be; % set initial guess
     U(:,i)=U_be;
-    U_be = x; % update U_be
+    U_be = x; % update U_cn
     plot(U)
     hold on
     drawnow;
     pause(.01);
 end
+
 
 %%
 
@@ -155,7 +142,7 @@ xspan = 0:dx:1;
 n = length(tspan);
 m = length(xspan);
 
-r = kappa*dt/(dx^2);
+r = kappa*dt/(2*dx^2);
 
 e=ones(length(xspan),1);
 A = spdiags([e -2*e e], -1:1, m, m);
@@ -204,54 +191,44 @@ save A4.dat A4 -ascii
 clear variables;
 % Crank-Nicolson Method
 % set space and time discretization
-% initial distribution
-init_cond = @(x) sin(2*pi*x);
-kappa=.1;
 dt = .01;
 dx = .01;
 tspan = 0:dt:1;
 xspan = 0:dx:1;
 n = length(tspan);
 m = length(xspan);
+kappa=.1;
 
-r = kappa*dt/(dx^2);
-U_cn = transpose(init_cond(xspan)); % define initial U
+r = kappa*dt/(2*dx^2);
 
 e=ones(length(xspan),1);
 A = spdiags([e -2*e e], -1:1, m, m);
-A(1,end-1)=1;
+A(1,m-1)=1;
 A(end,2)=1;
 
+% initial distribution
+init_cond = @(x) sin(2*pi*x);
+
+U_cn = transpose(init_cond(xspan)); % define initial U
+
 U = zeros(length(xspan),length(tspan));
+
+A1 = eye(m)-r*A;
+A2 = eye(m)+r*A;
 
 for i=1:length(tspan)
     
     M = diag(diag(A)); % set predconditioner to diagonal of A
-    b = ones(m,1); % set b to a column of ones length n
-    x = U_cn; % set initial guess
-    k=1; % counter
-    errVec = zeros(1,1000); % initialize array to hold errors
-    resid = x - r*A*(x+U_cn) - U_cn; % residuals
-    err = norm(resid); % compute the error from the residuals
-    errVec(k)=err;
-    z = M\resid; % solve for z
-    
-    while err > 1e-2
-        x = x + z; % update x
-        resid = x - r*A*(x+U_cn) - U_cn; % update residuals
-        err = norm(resid); % update error
-        z = M\resid; % update z
-        k=k+1; % add 1 to the number of loops
-        errVec(k)=err;
-        if k > 1000
-            break
-        end
-    end
+    x = A1\(A2*U_cn); % set initial guess
     U(:,i)=U_cn;
-    U_cn = x; % update U_be
+    U_cn = x; % update U_cn
     plot(U)
     hold on
     drawnow;
-    pause(.1);
+    pause(.01);
 end
+
+%Save A5
+%A5 = U(:,end);
+%save A5.dat A5 -ascii
 
